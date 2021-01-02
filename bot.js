@@ -1,5 +1,6 @@
 const schedule = require('./schedule')
 const cron = require('node-cron')
+const parser = require('cron-parser');
 const Discord = require('discord.js')
 
 const client = new Discord.Client()
@@ -12,7 +13,7 @@ client.on('ready', () => {
     cron.schedule(entry.cron, () => {
       console.log('scheduling: ' + entry.label)
 
-      client.channels.cache.find(i => i.name === 'test').send(entry.label + "SOON")
+      client.channels.cache.find(i => i.name === 'test')?.send(entryToMessage(entry))
     }, {
       scheduled: true,
       timezone: "Europe/Amsterdam" // CET
@@ -32,6 +33,14 @@ client.on('message', message => {
 
 client
   .login(process.env.BOT_TOKEN)
-  .catch(e => {
-    console.log('CLIENT->LOGIN:ERROR: ' + e)
-  })
+  .catch(e => console.log('CLIENT->LOGIN:ERROR: ' + e.message))
+
+const entryToMessage = (entry) => {
+  try {
+    var interval = parser.parseExpression(entry.cron)
+
+    console.log('Date: ', interval.next().toString())
+  } catch (e) {
+    console.log('ENTRYTOMESSAGE->ERROR: ' + e.message)
+  }
+}
